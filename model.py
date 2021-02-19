@@ -7,7 +7,7 @@ from sklearn.externals import joblib
 import numpy as np
 
 
-def train(X,y):
+def train(X, y):
 
     # train test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
@@ -22,20 +22,23 @@ def train(X,y):
 
     return knn
 
+
 if __name__ == '__main__':
 
     iris_data = datasets.load_iris()
     X = iris_data['data']
     y = iris_data['target']
 
-    labels = {0 : 'iris-setosa',
-              1 : 'iris-versicolor',
-              2 : 'iris-virginica'}
+    labels = {
+        0: 'iris-setosa',
+        1: 'iris-versicolor',
+        2: 'iris-virginica'
+    }
 
     # rename integer labels to actual flower names
     y = np.vectorize(labels.__getitem__)(y)
 
-    mdl = train(X,y)
+    mdl = train(X, y)
 
     # serialize model
     joblib.dump(mdl, 'iris.mdl')
