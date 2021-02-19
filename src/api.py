@@ -1,11 +1,12 @@
-from flask import Flask
+from flask import Flask, request
 import pickle
 import numpy as np
+import pandas as pd
 
 app = Flask(__name__)
 
-def get_model(version='latest'):
-    with open('kkr_model.pkl', 'rb') as mdl_pkl:
+def predict(payload, version='latest'):
+    with open('model/kernelridge_model_v1.0.0.pkl', 'rb') as mdl_pkl:
         model = pickle.load(mdl_pkl)
         # Key Indicators
         indicators = ['economy',
@@ -17,12 +18,16 @@ def get_model(version='latest'):
                 'cellular_subscriptions',
                 'GDP_per_capita[$]',
                 'inflation_rate[%]']
-        example_input = [[1,1,1,1,1,1,1,1,1]]
-        predict_happiness(indicators, model)
+    if len(payload.keys()) != 9:
+        return 0
+    df = pd.DataFrame([payload])
+    return model.predict(df)[0]
 
-@app.route('/test', methods=['GET'])
-def test():
-    return 'Pinging Model Application!!'
+
+@app.route('/score', methods=['POST'])
+def score():
+    request_data = request.get_json()
+    return {"score" : predict(request_data)}
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=9696)

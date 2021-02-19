@@ -7,6 +7,11 @@ import plotly.graph_objs as go
 
 from clean import clean_dataset
 
+@st.cache()
+def read_data():
+    data = pd.read_csv('data/happiness.csv', delimiter=',', header=0, skip_blank_lines=False)
+    return clean_dataset(data)
+
 st.title("Word Happiness Indicator")
 st.subheader("Investigating how nations indicators affect happiness using machine learning regression techniques")
 
@@ -16,13 +21,23 @@ def score(data):
     return req.text
 
 # Sidebar
-def generate_sidebar():
-    pass
+def generate_sidebar(cleaned_featureset):
+    st.sidebar.subheader("Create your own Happiness")
+    user_vals = {k : None for k in cleaned_featureset.columns[1:]}
+    for col in cleaned_featureset.columns[1:]:
+        user_vals[col] = round(st.sidebar.slider(
+            col,
+            min_value=min(cleaned_featureset[col]),
+            max_value=max(cleaned_featureset[col]),
+            value=sum(cleaned_featureset[col])/len(cleaned_featureset[col])), 3)
+    st.sidebar.subheader("Payload sent to model")
+    st.sidebar.write(user_vals)
+    run_prediction = st.sidebar.button("Predict")
+    if run_prediction:
+        # requests.get()
+        pass
 
-def generate_main():
-    data = pd.read_csv('data/happiness.csv', delimiter=',', header=0, skip_blank_lines=False)
-    st.dataframe(data)
-    cleaned_featureset = clean_dataset(data)
+def generate_main(cleaned_featureset):
     st.dataframe(cleaned_featureset.describe().T)
 
     feature = st.selectbox("Select a feature to compare with Happiness", cleaned_featureset.columns)
@@ -36,8 +51,13 @@ def generate_main():
             x=corr.index.values,
             y=corr.columns.values))
 
+    heatmap_fig.update_layout(
+        height = 700,
+        width = 700
+    )
     st.plotly_chart(heatmap_fig)
 
 if __name__ == "__main__":
-    generate_sidebar()
-    generate_main()
+    cleaned_featureset = read_data()
+    generate_sidebar(cleaned_featureset)
+    generate_main(cleaned_featureset)
