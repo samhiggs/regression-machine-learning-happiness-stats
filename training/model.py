@@ -5,18 +5,19 @@ from sklearn import metrics
 import numpy as np
 
 
-def train(cleaned_featureset, save=True):
+def train(cleaned_featureset):
     """
     Training a Kernel Ridge Regression model
     """
-    featureset_keys = [
-        'economy', 'family', 'health',
-        'freedom', 'dystopia_residual',
-        'internet_access_population[%]',
-        'cellular_subscriptions', 'GDP_per_capita[$]',
-        'inflation_rate[%]'
-    ]
+    featureset_keys = ['economy', 'family', 'health',
+                   'freedom', 'dystopia_residual',
+                   'internet_access_population[%]',
+                   'cellular_subscriptions', 'GDP_per_capita[$]',
+                   'inflation_rate[%]'
+                  ]
+    featureset = cleaned_featureset[featureset_keys]
     rkf = RepeatedKFold(n_splits=5, n_repeats=1)
+    iteration = 0
     pred_list = []
     pred_val_list = []
     best_model = None
@@ -24,25 +25,17 @@ def train(cleaned_featureset, save=True):
     for train, test in rkf.split(cleaned_featureset):
         train_x, train_y = (cleaned_featureset.iloc[train])[featureset_keys], (cleaned_featureset.iloc[train])['happiness_score']
         test_x, test_y =(cleaned_featureset.iloc[test])[featureset_keys], (cleaned_featureset.iloc[test])['happiness_score']
-
-        # Create model
+        #Create model
         clf = KernelRidge(alpha=1)
-
-        # Build model with training data
-        clf.fit(train_x, train_y)
-
-        # Get predictions from testset
+        #Build model with training data
+        fit = clf.fit(train_x, train_y)
+        #now use the model to
         pred_y = clf.predict(test_x)
-
         score = clf.score(test_x, test_y)
         if score > baseline:
             best_model = clf
         pred_list.append(pred_y)
         pred_val_list.append(score)
-
-        if save == True:
-            filename = 'kkr_model.pkl'
-            pickle.dump(best_model, open(filename, 'wb'))
 
 
 if __name__ == '__main__':

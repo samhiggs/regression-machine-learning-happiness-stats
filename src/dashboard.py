@@ -5,6 +5,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
 
+from sklearn.decomposition import PCA
+
 from clean import clean_dataset
 
 
@@ -43,7 +45,7 @@ def generate_sidebar(cleaned_featureset):
             col,
             min_value=min(cleaned_featureset[col]),
             max_value=max(cleaned_featureset[col]),
-            value=sum(cleaned_featureset[col])/len(cleaned_featureset[col])), 3)
+            value=sum(cleaned_featureset[col]) / len(cleaned_featureset[col])), 3)
     st.sidebar.subheader("Payload sent to model")
     st.sidebar.write(user_vals)
     run_prediction = st.sidebar.button("Predict")
@@ -51,6 +53,13 @@ def generate_sidebar(cleaned_featureset):
     if run_prediction:
         score_val = score(filter_dict(user_vals))
         st.sidebar.write(f"Prediction: {score_val['score']}")
+
+
+def create_PCA(cleaned_featureset):
+    pca = PCA(n_components=2)
+    components = pca.fit_transform(cleaned_featureset.drop('happiness_score', axis=1))
+    fig = px.scatter(components, x=0, y=1)
+    return fig
 
 
 def generate_main(cleaned_featureset):
@@ -73,6 +82,8 @@ def generate_main(cleaned_featureset):
         width=700
     )
     st.plotly_chart(heatmap_fig)
+    pca_fig = create_PCA(cleaned_featureset)
+    st.plotly_chart(pca_fig, text=cleaned_featureset)
 
 
 if __name__ == "__main__":

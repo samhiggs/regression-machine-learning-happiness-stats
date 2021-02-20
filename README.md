@@ -1,7 +1,20 @@
 # Example of Regression Learning Models
 
+This repository uses Scikit-learn kernel ridge regression models and the world happiness report dataset
+
+
 ## Usage
+
+### App
+
+The Makefile will start the api on a separate process then start the front end.
+
+```
+make run
+```
+
 ### API
+
 ```
 payload='{
 "freedom" : 0.616,
@@ -23,3 +36,5 @@ echo $payload | curl \
 
 unset payload
 ```
+
+## Citations
