@@ -9,5 +9,5 @@ build:
 	@echo Hello World
 
 run:
-	python src/api.py &
-	streamlit run --server.port 53000 src/dashboard.py
+	python app/src/api.py &
+	streamlit run --server.port 53000 app/src/dashboard.py

@@ -12,7 +12,7 @@ from clean import clean_dataset
 
 @st.cache()
 def read_data():
-    data = pd.read_csv('data/happiness.csv', delimiter=',', header=0, skip_blank_lines=False)
+    data = pd.read_csv('app/data/happiness.csv', delimiter=',', header=0, skip_blank_lines=False)
     return clean_dataset(data)
 
 
@@ -62,6 +62,23 @@ def create_PCA(cleaned_featureset):
     return fig
 
 
+def generate_train_section(cleaned_featureset):
+    st.title("Train your own model")
+    st.subheader("Set your parameters, features and see how it stacks up!")
+    user_feature_sel = []
+    for c in cleaned_featureset[1:].columns:
+        user_feature_sel.append(st.checkbox(c, value=True, key=f'{c}_feature'))
+    user_alpha = st.text_input("Select Alpha", value=0.001)
+    if user_alpha:
+        try:
+            float(user_alpha)
+        except ValueError:
+            st.write("Ensure value is a number")
+    train = st.button("Train")
+    if train:
+        pass
+
+
 def generate_main(cleaned_featureset):
 
     st.dataframe(cleaned_featureset.describe().T)
@@ -84,6 +101,7 @@ def generate_main(cleaned_featureset):
     st.plotly_chart(heatmap_fig)
     pca_fig = create_PCA(cleaned_featureset)
     st.plotly_chart(pca_fig, text=cleaned_featureset)
+    generate_train_section(cleaned_featureset)
 
 
 if __name__ == "__main__":
