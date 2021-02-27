@@ -71,9 +71,10 @@ def generate_train_section(cleaned_featureset):
 
     for c in cleaned_featureset[1:].columns:
         user_feature_sel.append(st.checkbox(c, value=True, key=f'{c}_feature'))
+
     # Parameters
     ## Kernel type
-   kernel = st.selectbox(
+    kernel = st.selectbox(
         "Select Model Type",
         ["linear", "polynomial", "gaussian"]
     )
