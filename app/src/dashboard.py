@@ -31,7 +31,7 @@ def filter_dict(dict):
         'cellular_subscriptions', 'familiy_income_gini_coeff', 'GDP_per_capita[$]',
         'inflation_rate[%]', 'military_expenditures[%]', 'population'
     ]
-    return {k : dict[k] for k in keys}
+    return {k: dict[k] for k in keys}
 
 
 def generate_sidebar(cleaned_featureset):
@@ -39,7 +39,7 @@ def generate_sidebar(cleaned_featureset):
     Sidebar
     '''
     st.sidebar.subheader("Create your own Happiness")
-    user_vals = {k : None for k in cleaned_featureset.columns[1:]}
+    user_vals = {k: None for k in cleaned_featureset.columns[1:]}
     for col in cleaned_featureset.columns[1:]:
         user_vals[col] = round(st.sidebar.slider(
             col,
@@ -57,7 +57,9 @@ def generate_sidebar(cleaned_featureset):
 
 def create_PCA(cleaned_featureset):
     pca = PCA(n_components=2)
-    components = pca.fit_transform(cleaned_featureset.drop('happiness_score', axis=1))
+    components = pca.fit_transform(
+        cleaned_featureset.drop('happiness_score', axis=1)
+    )
     fig = px.scatter(components, x=0, y=1)
     return fig
 
@@ -66,14 +68,31 @@ def generate_train_section(cleaned_featureset):
     st.title("Train your own model")
     st.subheader("Set your parameters, features and see how it stacks up!")
     user_feature_sel = []
+
     for c in cleaned_featureset[1:].columns:
         user_feature_sel.append(st.checkbox(c, value=True, key=f'{c}_feature'))
-    user_alpha = st.text_input("Select Alpha", value=0.001)
+    # Parameters
+    ## Kernel type
+   kernel = st.selectbox(
+        "Select Model Type",
+        ["linear", "polynomial", "gaussian"]
+    )
+
+    ## Alpha
+    user_alpha = st.text_input("Select Alpha", value=1.0)
     if user_alpha:
         try:
             float(user_alpha)
         except ValueError:
             st.write("Ensure value is a number")
+
+    ## Gamma
+
+    ## Degrees
+    if kernel == "polynomial":
+        degree = st.slider("Select number of degrees for model",
+        min_value=2, max_value=7, value=3)
+
     train = st.button("Train")
     if train:
         pass

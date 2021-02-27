@@ -5,37 +5,66 @@ from sklearn import metrics
 import numpy as np
 
 
-def train(cleaned_featureset):
-    """
-    Training a Kernel Ridge Regression model
-    """
-    featureset_keys = ['economy', 'family', 'health',
-                   'freedom', 'dystopia_residual',
-                   'internet_access_population[%]',
-                   'cellular_subscriptions', 'GDP_per_capita[$]',
-                   'inflation_rate[%]'
-                  ]
-    featureset = cleaned_featureset[featureset_keys]
-    rkf = RepeatedKFold(n_splits=5, n_repeats=1)
-    iteration = 0
-    pred_list = []
-    pred_val_list = []
+def train_model(df, featureset_keys, kernel="linear", alpha=1.0, gamma=None, degree=None, coef0=None):
+
+    # Setup Parameters for Model
+    kr_args = {"kernel": kernel, "alpha": alpha}
+
+    # Validate parameters for polynomial
+    if kernel == "polynomial":
+        if degree is None or coef0 is None:
+            print("Must provide a parameter for degree and coef0")
+            return None
+        else:
+            kr_args["gamma"] = gamma
+            kr_args["degree"] = degree
+            kr_args["coef0"] = coef0
+
+    # Initialize the figure size
+    plt.figure(figsize=(20, 10))
+
+    # Store the results of each training run
+    predictions = []
+    scores = []
+
+    # Save the best model to return
     best_model = None
-    baseline = -1
-    for train, test in rkf.split(cleaned_featureset):
-        train_x, train_y = (cleaned_featureset.iloc[train])[featureset_keys], (cleaned_featureset.iloc[train])['happiness_score']
-        test_x, test_y =(cleaned_featureset.iloc[test])[featureset_keys], (cleaned_featureset.iloc[test])['happiness_score']
-        #Create model
-        clf = KernelRidge(alpha=1)
-        #Build model with training data
-        fit = clf.fit(train_x, train_y)
-        #now use the model to
-        pred_y = clf.predict(test_x)
-        score = clf.score(test_x, test_y)
+    baseline = 0.0
+
+    i = 0
+    for train, test in RepeatedKFold(n_splits=5, n_repeats=1).split(df):
+
+        # Split dataset
+        train_x, train_y = (df.iloc[train])[featureset_keys], (df.iloc[train])['happiness_score']
+        test_x, test_y =(df.iloc[test])[featureset_keys], (df.iloc[test])['happiness_score']
+
+        # Initialise model
+        kr_model = KernelRidge(**kr_args)
+
+        # Train model
+        kr_model.fit(train_x, train_y)
+
+        # Evaluate model
+        pred_y = kr_model.predict(test_x)
+        score = kr_model.score(test_x, test_y)
+
+        # Save if better then previous
         if score > baseline:
-            best_model = clf
-        pred_list.append(pred_y)
-        pred_val_list.append(score)
+            best_model = kr_model
+        predictions.append(pred_y)
+        plt.scatter(test_y, p, label=f"iter {i}")
+        scores.append(score)
+        i = i+1
+
+    plt.plot(df['happiness_score'], df['happiness_score'], label='actual')
+    plt.xlabel('True Values')
+    plt.ylabel('Predictions')
+    plt.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
+    return best_model, plt, scores
+    print(pred_scores)
+
+# best_model, plt, scores = train_model(cleaned_featureset, featureset_keys)
+best_model, plt, scores = train_model(cleaned_featureset, featureset_keys, kernel="polynomial", degree=3, coef0=1)
 
 
 if __name__ == '__main__':
