@@ -31,7 +31,7 @@ def predict(payload, version='latest'):
 
 @app.route('/score', methods=['POST'])
 def score():
-    app.logger.info("HELO")
+    app.logger.info("HELlO")
     request_data = request.get_json()
     app.logger.info(request_data)
     pred = predict(request_data)

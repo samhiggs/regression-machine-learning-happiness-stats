@@ -3,42 +3,55 @@
 FROM amazon/aws-cli as download-artefacts
 
 # For this to run you will need to configure your aws privileges in the projects directory
+# Keep it project specific so you can associate your keys with roles specific to the project
 COPY ./.aws /root/.aws
 
 RUN aws s3 cp s3://project-models/happiness-project/model /app/model --recursive
 RUN aws s3 cp s3://project-models/happiness-project/data /app/data --recursive
 
+
+
 ###############################
 # STAGE 2: Build App
-FROM python:3.9.2-slim-buster as test
+FROM python:3.9.2-slim-buster as base
 
-COPY app/src /app/src
-COPY --from=download-artefacts /model /app/model
-COPY --from=download-artefacts /data /app/data
+
+FROM base as build
+
+COPY --from=download-artefacts /app /app
+
+RUN mkdir /install
 
 COPY requirements.txt /requirements.txt
 
-RUN pip install -r requirements.txt && pip install pytest
+RUN pip install --target=/install -r /requirements.txt
+
+COPY app/src /app/src
+
+
+
+###############################
+# STAGE 3: Test App
+FROM base as test
+
+RUN pip install pytest
 
 COPY tests /tests
 
-WORKDIR /app
+RUN ["pytest", "--rootdir", "/tests"]
 
-RUN ["pytest", "--rootdir", "tests"]
+
 
 ###############################
-# STAGE 3: Deploy App
-FROM python:3.9.2-slim-buster as deploy
+# STAGE 4: Deploy App
+FROM base as deploy
 
-COPY --from=test /app /app
-COPY --from=test /requirements.txt /requirements.txt
-
-RUN pip install -r requirements.txt
-
+COPY --from=build /app /app
+COPY --from=build /install /usr/local/lib/python3.9/site-packages
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
-EXPOSE 9696 8000
+RUN useradd -m happydocker
+USER happydocker
 
 ENTRYPOINT ["/entrypoint.sh"]
 

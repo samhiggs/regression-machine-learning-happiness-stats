@@ -1,4 +1,4 @@
 #! /bin/bash
 
 python app/src/api.py &
-streamlit run --server.port 8000 app/src/dashboard.py
+python -m streamlit run --server.port $PORT app/src/dashboard.py

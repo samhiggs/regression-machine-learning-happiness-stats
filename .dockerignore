@@ -1,0 +1,8 @@
+notebooks
+.vscode
+.venv
+.gitignore
+Makefile
+README.md
+app/data
+app/model

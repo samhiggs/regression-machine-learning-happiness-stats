@@ -9,6 +9,16 @@ clean-py:
 clean-nb:
 	jupyter nbconvert --clear-output --inplace notebooks/*
 
+clean-files:
+	rm app/data/*
+	rm app/model/*
+
+clean-all: clean-*
+
+download-files:
+	$(shell aws s3 cp s3://project-models/happiness-project/model app/model --recursive && \
+		 aws s3 cp s3://project-models/happiness-project/data app/data --recursive)
+
 clean-docker:
 	docker stop happiness-regression
 
@@ -21,8 +31,8 @@ docker-run:
 	docker run \
 		--rm \
 		--detach \
+		--env PORT=8000 \
 		--publish 8000:8000 \
-		--publish 9696:9696 \
 		--name happiness-regression \
 		happiness-regression
 
@@ -30,6 +40,8 @@ docker-mount-run:
 	docker run \
 		--rm \
 		--interactive \
+		--detach \
+		--env PORT=8000 \
 		--publish 8000:8000 \
 		--publish 9696:9696 \
 		--volume /mnt/c/Users/samhi/Documents/projects/regression-machine-learning-happiness-stats/app:/app \
