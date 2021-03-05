@@ -10,12 +10,13 @@ RUN aws s3 cp s3://project-models/happiness-project/model /app/model --recursive
 RUN aws s3 cp s3://project-models/happiness-project/data /app/data --recursive
 
 
-
 ###############################
-# STAGE 2: Build App
+# Base Image
 FROM python:3.9.2-slim-buster as base
 
 
+###############################
+# STAGE 2: Build App
 FROM base as build
 
 COPY --from=download-artefacts /app /app
@@ -24,7 +25,7 @@ RUN mkdir /install
 
 COPY requirements.txt /requirements.txt
 
-RUN pip install --target=/install -r /requirements.txt
+RUN pip install --target=/install --no-cache-dir -r /requirements.txt
 
 COPY app/src /app/src
 

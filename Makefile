@@ -1,3 +1,10 @@
+HEROKU_REGISTRY 			  := "registry.heroku.com"
+APP_NAME 							:= "happiness-regression-app"
+HEROKU_PROCESS_TYPE 	 := "web"
+IMAGE_NAME 						 := $(HEROKU_REGISTRY)/$(APP_NAME)/$(HEROKU_PROCESS_TYPE)
+PORT 									 := 8000
+LOCAL_API_PORT 					:= 9696
+
 .PHONY: all clean build run
 
 all: clean-* docker-build docker-run
@@ -20,37 +27,37 @@ download-files:
 		 aws s3 cp s3://project-models/happiness-project/data app/data --recursive)
 
 clean-docker:
-	docker stop happiness-regression
+	docker stop $(IMAGE_NAME)
 
 clean-all: clean-nb clean-py
 
 docker-build:
-	docker build -t happiness-regression .
+	docker build -t $(IMAGE_NAME) .
 
 docker-run:
 	docker run \
 		--rm \
 		--detach \
-		--env PORT=8000 \
-		--publish 8000:8000 \
-		--name happiness-regression \
-		happiness-regression
+		--env PORT=$(PORT) \
+		--publish $(PORT):$(PORT) \
+		--name $(IMAGE_NAME) \
+		$(IMAGE_NAME)
 
 docker-mount-run:
 	docker run \
 		--rm \
 		--interactive \
-		--detach \
-		--env PORT=8000 \
-		--publish 8000:8000 \
-		--publish 9696:9696 \
+		--env PORT=$(PORT) \
+		--publish $(PORT):$(PORT) \
+		--publish $(LOCAL_API_PORT):$(LOCAL_API_PORT) \
+		--name $(IMAGE_NAME) \
 		--volume /mnt/c/Users/samhi/Documents/projects/regression-machine-learning-happiness-stats/app:/app \
-		happiness-regression \
+		$(IMAGE_NAME) \
 		--entrypoint /bin/bash
 
 run:
 	python app/src/api.py &
-	streamlit run --server.port 8000 app/src/dashboard.py
+	streamlit run --server.port $(PORT) app/src/dashboard.py
 
 run-jupyter:
 	jupyter notebook --no-browser
